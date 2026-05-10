@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beam Analysis Tool</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --bg2: #f5f4f0;
+    --bg3: #eeede9;
+    --text: #3d3d3a;
+    --text2: #888780;
+    --border: rgba(0,0,0,0.12);
+    --border2: rgba(0,0,0,0.22);
+    --radius: 10px;
+    --radius-sm: 7px;
+    --blue: #185FA5;
+    --green: #3B6D11;
+    --red: #A32D2D;
+    --amber: #854F0B;
+    --purple: #534AB7;
+    --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1e1e1b;
+      --bg2: #2a2a27;
+      --bg3: #333330;
+      --text: #c2c0b6;
+      --text2: #888780;
+      --border: rgba(255,255,255,0.1);
+      --border2: rgba(255,255,255,0.2);
+      --blue: #5BA3E0;
+      --green: #7EC84B;
+      --red: #E87070;
+      --amber: #EAA94A;
+      --purple: #9B94E8;
+    }
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg2);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .page {
+    max-width: 780px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: var(--text2);
+  }
+
+  .card {
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+  }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+
+  .row:last-child { margin-bottom: 0; }
+
+  label.lbl {
+    font-size: 13px;
+    color: var(--text2);
+    min-width: 140px;
+  }
+
+  input[type=number], select {
+    padding: 7px 10px;
+    font-size: 13px;
+    border: 0.5px solid var(--border2);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+    font-family: var(--font);
+  }
+
+  input[type=number] { width: 90px; }
+  select { min-width: 220px; }
+
+  input[type=number]:focus, select:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--blue) 20%, transparent);
+  }
+
+  button {
+    padding: 7px 16px;
+    font-size: 13px;
+    font-family: var(--font);
+    border: 0.5px solid var(--border2);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  button:hover { background: var(--bg2); }
+
+  button.primary {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+  }
+
+  button.primary:hover { opacity: 0.82; }
+
+  button.danger { border-color: var(--red); color: var(--red); }
+  button.danger:hover { background: color-mix(in srgb, var(--red) 8%, transparent); }
+
+  .force-list { display: flex; flex-direction: column; gap: 6px; }
+
+  .force-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    background: var(--bg2);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    flex-wrap: wrap;
+  }
+
+  .force-name { flex: 1; color: var(--text); }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .badge-down  { background: #FCEBEB; color: #A32D2D; }
+  .badge-up    { background: #EAF3DE; color: #3B6D11; }
+  .badge-horiz { background: #E6F1FB; color: #185FA5; }
+  .badge-angled{ background: #FAEEDA; color: #854F0B; }
+
+  @media (prefers-color-scheme: dark) {
+    .badge-down  { background: #501313; color: #F09595; }
+    .badge-up    { background: #173404; color: #97C459; }
+    .badge-horiz { background: #042C53; color: #85B7EB; }
+    .badge-angled{ background: #412402; color: #EF9F27; }
+  }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+  }
+
+  .metric {
+    background: var(--bg2);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+  }
+
+  .metric-label { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+  .metric-value { font-size: 20px; font-weight: 500; }
+
+  canvas { width: 100%; display: block; border-radius: var(--radius-sm); }
+
+  .err { color: var(--red); font-size: 13px; padding: 4px 0; min-height: 20px; }
+
+  #angle-row { display: none; }
+
+  .hidden { display: none !important; }
+
+  footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text2);
+    padding-top: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div>
+    <h1>Beam Analysis</h1>
+    <p class="subtitle">Simply supported beam — moments, reactions & bending moment diagram</p>
+  </div>
+
+  <!-- Beam Setup -->
+  <div class="card">
+    <div class="section-title">Beam setup</div>
+    <div class="row">
+      <label class="lbl">Beam length (m)</label>
+      <input type="number" id="beamLen" value="10" min="0.1" step="0.1">
+    </div>
+  </div>
+
+  <!-- Add Force -->
+  <div class="card">
+    <div class="section-title">Add a force</div>
+    <div class="row">
+      <label class="lbl">Type</label>
+      <select id="forceType">
+        <option value="down">Point load — downward</option>
+        <option value="up">Point load — upward</option>
+        <option value="horiz">Horizontal force</option>
+        <option value="angled">Angled load</option>
+      </select>
+    </div>
+    <div class="row">
+      <label class="lbl">Magnitude (kN)</label>
+      <input type="number" id="forceMag" value="10" step="0.1">
+    </div>
+    <div class="row" id="angle-row">
+      <label class="lbl">Angle from horizontal (°)</label>
+      <input type="number" id="forceAngle" value="45" min="-180" max="180" step="1">
+    </div>
+    <div class="row">
+      <label class="lbl">Distance from A (m)</label>
+      <input type="number" id="forceDist" value="5" min="0" step="0.1">
+      <button class="primary" onclick="addForce()" style="margin-left:auto">Add force</button>
+    </div>
+    <div class="err" id="err"></div>
+  </div>
+
+  <!-- Force List -->
+  <div class="card hidden" id="forceListCard">
+    <div class="section-title">Applied forces</div>
+    <div class="force-list" id="forceList"></div>
+  </div>
+
+  <!-- Beam Diagram -->
+  <div class="card">
+    <div class="section-title">Beam &amp; load diagram</div>
+    <canvas id="beamCanvas" height="180"></canvas>
+  </div>
+
+  <!-- Reactions -->
+  <div class="card hidden" id="resultsCard">
+    <div class="section-title">Support reactions</div>
+    <div class="results-grid" id="resultsGrid"></div>
+  </div>
+
+  <!-- BMD -->
+  <div class="card hidden" id="bmdCard">
+    <div class="section-title">Bending moment diagram</div>
+    <canvas id="bmdCanvas" height="220"></canvas>
+  </div>
+
+  <!-- SFD -->
+  <div class="card hidden" id="sfCard">
+    <div class="section-title">Shear force diagram</div>
+    <canvas id="sfCanvas" height="160"></canvas>
+  </div>
+
+  <footer>Beam Analysis Tool &mdash; simply supported, point loads</footer>
+
+</div>
+
+<script>
+const forces = [];
+let nextId = 1;
+
+document.getElementById('forceType').addEventListener('change', function () {
+  document.getElementById('angle-row').style.display = this.value === 'angled' ? 'flex' : 'none';
+});
+
+document.getElementById('beamLen').addEventListener('input', () => {
+  compute();
+  if (forces.length === 0) drawBeam(parseFloat(document.getElementById('beamLen').value) || 10);
+});
+
+window.addEventListener('resize', () => compute());
+
+function addForce() {
+  const err = document.getElementById('err');
+  err.textContent = '';
+  const L = parseFloat(document.getElementById('beamLen').value);
+  const type = document.getElementById('forceType').value;
+  const mag = parseFloat(document.getElementById('forceMag').value);
+  const dist = parseFloat(document.getElementById('forceDist').value);
+  const angle = parseFloat(document.getElementById('forceAngle').value) || 45;
+  if (isNaN(mag) || mag === 0) { err.textContent = 'Enter a non-zero magnitude.'; return; }
+  if (isNaN(dist) || dist < 0 || dist > L) { err.textContent = `Distance must be between 0 and ${L} m.`; return; }
+  forces.push({ id: nextId++, type, mag, dist, angle });
+  renderForceList();
+  compute();
+}
+
+function removeForce(id) {
+  const i = forces.findIndex(f => f.id === id);
+  if (i > -1) forces.splice(i, 1);
+  renderForceList();
+  compute();
+}
+
+function renderForceList() {
+  const card = document.getElementById('forceListCard');
+  const list = document.getElementById('forceList');
+  if (forces.length === 0) { card.classList.add('hidden'); return; }
+  card.classList.remove('hidden');
+  list.innerHTML = forces.map(f => {
+    let badge, label;
+    if (f.type === 'down')   { badge = '<span class="badge badge-down">↓ down</span>';   label = `${f.mag} kN at ${f.dist} m`; }
+    else if (f.type === 'up') { badge = '<span class="badge badge-up">↑ up</span>';       label = `${f.mag} kN at ${f.dist} m`; }
+    else if (f.type === 'horiz') { badge = '<span class="badge badge-horiz">→ horiz</span>'; label = `${f.mag} kN at ${f.dist} m`; }
+    else { badge = '<span class="badge badge-angled">∠ angled</span>'; label = `${f.mag} kN @ ${f.angle}° at ${f.dist} m`; }
+    return `<div class="force-item">${badge}<span class="force-name">${label}</span><button class="danger" onclick="removeForce(${f.id})">✕</button></div>`;
+  }).join('');
+}
+
+// Sign convention: downward force = positive fy (causes sagging = positive moment)
+// For angled loads, angle is measured from horizontal (positive = above horizontal pointing right)
+// So a load angled downward into the beam at +25° has a downward vertical component = mag * sin(25°)
+function getVertical(f) {
+  if (f.type === 'down')   return f.mag;
+  if (f.type === 'up')     return -f.mag;
+  if (f.type === 'horiz')  return 0;
+  // angled: angle from horizontal, positive CCW. Downward component = mag * sin(angle)
+  return f.mag * Math.sin(f.angle * Math.PI / 180);
+}
+
+function getHorizontal(f) {
+  if (f.type === 'horiz')  return f.mag;
+  if (f.type === 'angled') return f.mag * Math.cos(f.angle * Math.PI / 180);
+  return 0;
+}
+
+function compute() {
+  const L = parseFloat(document.getElementById('beamLen').value) || 10;
+  drawBeam(L);
+  if (forces.length === 0) {
+    ['resultsCard','bmdCard','sfCard'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    return;
+  }
+
+  // Sum vertical forces and moments about A (taking moments: fy * dist, clockwise positive)
+  let sumV = 0, sumH = 0, sumMomentA = 0;
+  forces.forEach(f => {
+    const fy = getVertical(f);
+    const fx = getHorizontal(f);
+    sumV += fy;
+    sumH += fx;
+    sumMomentA += fy * f.dist;
+  });
+
+  // RB from moment equilibrium about A: RB * L = sumMomentA
+  const RB = L === 0 ? 0 : sumMomentA / L;
+  // RA from vertical equilibrium
+  const RA = sumV - RB;
+  const HA = -sumH;
+
+  // Build x-axis sample points (include exact force locations for sharp kinks)
+  const pts = new Set();
+  for (let i = 0; i <= 200; i++) pts.add(+(i * L / 200).toFixed(6));
+  forces.forEach(f => pts.add(+f.dist.toFixed(6)));
+  pts.add(0); pts.add(L);
+  const xs = Array.from(pts).sort((a, b) => a - b);
+
+  // Bending moment at x: M(x) = RA*x - sum of (fy_i * (x - dist_i)) for all forces left of x
+  // With down=positive convention, sagging moment is positive
+  const Ms = xs.map(x => {
+    let M = RA * x;
+    forces.forEach(f => {
+      if (f.dist <= x) M -= getVertical(f) * (x - f.dist);
+    });
+    return M;
+  });
+
+  // Shear force: V(x) = RA - sum of vertical forces to the left of x
+  const Vs = xs.map(x => {
+    let V = RA;
+    forces.forEach(f => {
+      if (f.dist < x) V -= getVertical(f);
+    });
+    return V;
+  });
+
+  const maxM = Math.max(...Ms.map(Math.abs));
+  const maxV = Math.max(...Vs.map(Math.abs));
+
+  // Reactions display
+  document.getElementById('resultsCard').classList.remove('hidden');
+  document.getElementById('resultsGrid').innerHTML = `
+    <div class="metric"><div class="metric-label">Reaction A (vertical)</div><div class="metric-value">${RA.toFixed(3)} kN</div></div>
+    <div class="metric"><div class="metric-label">Reaction B (vertical)</div><div class="metric-value">${RB.toFixed(3)} kN</div></div>
+    ${sumH !== 0 ? `<div class="metric"><div class="metric-label">Reaction A (horizontal)</div><div class="metric-value">${HA.toFixed(3)} kN</div></div>` : ''}
+    <div class="metric"><div class="metric-label">Max bending moment</div><div class="metric-value">${maxM.toFixed(3)} kNm</div></div>
+    <div class="metric"><div class="metric-label">Max shear force</div><div class="metric-value">${maxV.toFixed(3)} kN</div></div>
+    <div class="metric"><div class="metric-label">Sum of moments about A</div><div class="metric-value">${sumMomentA.toFixed(3)} kNm</div></div>
+  `;
+
+  drawBMD(xs, Ms, L, maxM);
+  drawSFD(xs, Vs, L, maxV);
+}
+
+/* ─── Canvas helpers ─── */
+
+function getCanvas(id, defaultH) {
+  const c = document.getElementById(id);
+  const dpr = window.devicePixelRatio || 1;
+  const w = c.parentElement.getBoundingClientRect().width - 40;
+  const h = defaultH;
+  c.width = w * dpr; c.height = h * dpr;
+  c.style.width = w + 'px'; c.style.height = h + 'px';
+  const ctx = c.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, w, h);
+  return { ctx, w, h };
+}
+
+function getTheme() {
+  const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  return {
+    text:     dark ? '#c2c0b6' : '#3d3d3a',
+    muted:    dark ? '#888780' : '#888780',
+    line:     dark ? '#3a3a37' : '#e0dfd9',
+    beam:     dark ? '#9c9a92' : '#3d3d3a',
+    bmd:      dark ? '#5BA3E0' : '#185FA5',
+    sfd:      dark ? '#7EC84B' : '#3B6D11',
+    down:     dark ? '#E87070' : '#A32D2D',
+    up:       dark ? '#7EC84B' : '#3B6D11',
+    horiz:    dark ? '#5BA3E0' : '#185FA5',
+    angled:   dark ? '#EAA94A' : '#854F0B',
+    reaction: dark ? '#9B94E8' : '#534AB7',
+  };
+}
+
+function drawBeam(L) {
+  const { ctx, w, h } = getCanvas('beamCanvas', 180);
+  const T = getTheme();
+  const PAD = 56, beamY = h * 0.48, bw = w - PAD * 2;
+
+  ctx.font = '12px ' + getComputedStyle(document.body).fontFamily;
+
+  // Beam line
+  ctx.strokeStyle = T.beam; ctx.lineWidth = 5; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(PAD, beamY); ctx.lineTo(PAD + bw, beamY); ctx.stroke();
+
+  // Supports
+  drawPin(ctx, PAD, beamY, T.reaction);
+  drawRoller(ctx, PAD + bw, beamY, T.reaction);
+
+  // Support labels
+  ctx.fillStyle = T.text; ctx.textAlign = 'center'; ctx.font = '12px system-ui';
+  ctx.fillText('A', PAD, beamY + 40);
+  ctx.fillText('B', PAD + bw, beamY + 40);
+
+  // Length dim line
+  ctx.strokeStyle = T.muted; ctx.lineWidth = 0.5; ctx.setLineDash([3, 3]);
+  ctx.beginPath(); ctx.moveTo(PAD, h - 14); ctx.lineTo(PAD + bw, h - 14); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = T.muted; ctx.textAlign = 'center';
+  ctx.fillText(`${L} m`, PAD + bw / 2, h - 2);
+
+  // Forces
+  forces.forEach(f => {
+    const fx = PAD + bw * (f.dist / L);
+    if (f.type === 'horiz') {
+      drawHorizArrow(ctx, fx, beamY, f.mag > 0 ? 1 : -1, T.horiz);
+      ctx.fillStyle = T.horiz; ctx.textAlign = 'center'; ctx.font = '11px system-ui';
+      ctx.fillText(`${f.mag} kN`, fx + 52, beamY - 16);
+    } else if (f.type === 'angled') {
+      drawAngledArrow(ctx, fx, beamY, f.angle, T.angled);
+      ctx.fillStyle = T.angled; ctx.textAlign = 'center'; ctx.font = '11px system-ui';
+      ctx.fillText(`${f.mag} kN @ ${f.angle}°`, fx, beamY - 68);
+    } else {
+      const dir = f.type === 'down' ? 1 : -1;
+      drawVertArrow(ctx, fx, beamY, dir, f.type === 'down' ? T.down : T.up);
+      const col = f.type === 'down' ? T.down : T.up;
+      ctx.fillStyle = col; ctx.textAlign = 'center'; ctx.font = '11px system-ui';
+      ctx.fillText(`${f.mag} kN`, fx, dir > 0 ? beamY - 62 : beamY + 62);
+    }
+
+    // Distance tick
+    ctx.strokeStyle = T.muted; ctx.lineWidth = 0.5; ctx.setLineDash([2, 3]);
+    ctx.beginPath(); ctx.moveTo(fx, beamY + 8); ctx.lineTo(fx, beamY + 26); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = T.muted; ctx.textAlign = 'center'; ctx.font = '10px system-ui';
+    ctx.fillText(`${f.dist} m`, fx, beamY + 37);
+  });
+}
+
+function drawPin(ctx, x, y, col) {
+  ctx.strokeStyle = col; ctx.lineWidth = 1.5;
+  ctx.fillStyle = col + '33';
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 13, y + 20); ctx.lineTo(x + 13, y + 20); ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x - 16, y + 22); ctx.lineTo(x + 16, y + 22); ctx.stroke();
+}
+
+function drawRoller(ctx, x, y, col) {
+  ctx.strokeStyle = col; ctx.lineWidth = 1.5;
+  ctx.fillStyle = col + '33';
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 13, y + 18); ctx.lineTo(x + 13, y + 18); ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  ctx.fillStyle = 'transparent';
+  ctx.beginPath(); ctx.arc(x - 9, y + 23, 4, 0, Math.PI * 2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(x + 9, y + 23, 4, 0, Math.PI * 2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x - 17, y + 28); ctx.lineTo(x + 17, y + 28); ctx.stroke();
+}
+
+function drawVertArrow(ctx, x, y, dir, col) {
+  const len = 50, head = 10;
+  const from = y - dir * len, to = y - dir * 3;
+  ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x, from); ctx.lineTo(x, to); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x, to + dir * head);
+  ctx.lineTo(x - 6, to + dir * head * 2.8);
+  ctx.lineTo(x + 6, to + dir * head * 2.8);
+  ctx.closePath(); ctx.fill();
+}
+
+function drawHorizArrow(ctx, x, y, dir, col) {
+  const len = 44, head = 8;
+  const from = x + dir * 6, to = x + dir * (len + 6);
+  ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(from, y); ctx.lineTo(to, y); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(to + dir * head, y);
+  ctx.lineTo(to - dir * 6, y - 6);
+  ctx.lineTo(to - dir * 6, y + 6);
+  ctx.closePath(); ctx.fill();
+}
+
+function drawAngledArrow(ctx, x, y, angleDeg, col) {
+  const rad = angleDeg * Math.PI / 180;
+  const len = 55;
+  const dx = Math.cos(rad) * len, dy = -Math.sin(rad) * len;
+  ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x - dx, y + dy); ctx.lineTo(x, y); ctx.stroke();
+  const ang = Math.atan2(-dy, dx);
+  ctx.save(); ctx.translate(x, y); ctx.rotate(ang + Math.PI);
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(10, -5); ctx.lineTo(10, 5); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+/* ─── BMD ─── */
+function drawBMD(xs, Ms, L, maxM) {
+  document.getElementById('bmdCard').classList.remove('hidden');
+  const { ctx, w, h } = getCanvas('bmdCanvas', 220);
+  const T = getTheme();
+  const PL = 60, PR = 20, PT = 20, PB = 40;
+  const gw = w - PL - PR, gh = h - PT - PB;
+  const scale = maxM > 0 ? (gh / 2) / maxM : 1;
+  const mid = PT + gh / 2;
+
+  drawAxes(ctx, PL, PT, gw, gh, T);
+
+  // Grid & Y labels
+  if (maxM > 0) {
+    [0.25, 0.5, 0.75, 1].forEach(r => {
+      const y1 = mid - r * gh / 2, y2 = mid + r * gh / 2;
+      ctx.strokeStyle = T.line; ctx.lineWidth = 0.5; ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(PL, y1); ctx.lineTo(PL + gw, y1); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(PL, y2); ctx.lineTo(PL + gw, y2); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = T.muted; ctx.textAlign = 'right'; ctx.font = '10px system-ui';
+      ctx.fillText((maxM * r).toFixed(2), PL - 4, y1 + 4);
+      if (r < 1) ctx.fillText((-maxM * r).toFixed(2), PL - 4, y2 + 4);
+    });
+    ctx.fillStyle = T.muted; ctx.textAlign = 'right';
+    ctx.fillText(maxM.toFixed(2), PL - 4, PT + 5);
+    ctx.fillText((-maxM).toFixed(2), PL - 4, PT + gh + 4);
+  }
+
+  // Fill
+  ctx.beginPath(); ctx.moveTo(PL, mid);
+  xs.forEach((x, i) => ctx.lineTo(PL + gw * (x / L), mid - Ms[i] * scale));
+  ctx.lineTo(PL + gw, mid); ctx.closePath();
+  ctx.fillStyle = T.bmd + '2a'; ctx.fill();
+
+  // Line
+  ctx.beginPath(); ctx.moveTo(PL, mid);
+  xs.forEach((x, i) => ctx.lineTo(PL + gw * (x / L), mid - Ms[i] * scale));
+  ctx.strokeStyle = T.bmd; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+
+  // X labels
+  drawXLabels(ctx, PL, PT, gw, gh, L, T);
+
+  // Axis label
+  drawYLabel(ctx, 'Bending moment (kNm)', h, T);
+}
+
+/* ─── SFD ─── */
+function drawSFD(xs, Vs, L, maxV) {
+  document.getElementById('sfCard').classList.remove('hidden');
+  const { ctx, w, h } = getCanvas('sfCanvas', 160);
+  const T = getTheme();
+  const PL = 60, PR = 20, PT = 16, PB = 36;
+  const gw = w - PL - PR, gh = h - PT - PB;
+  const scale = maxV > 0 ? (gh / 2) / maxV : 1;
+  const mid = PT + gh / 2;
+
+  drawAxes(ctx, PL, PT, gw, gh, T);
+
+  if (maxV > 0) {
+    [0.5, 1].forEach(r => {
+      const y1 = mid - r * gh / 2, y2 = mid + r * gh / 2;
+      ctx.strokeStyle = T.line; ctx.lineWidth = 0.5; ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(PL, y1); ctx.lineTo(PL + gw, y1); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(PL, y2); ctx.lineTo(PL + gw, y2); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = T.muted; ctx.textAlign = 'right'; ctx.font = '10px system-ui';
+      ctx.fillText((maxV * r).toFixed(2), PL - 4, y1 + 4);
+      if (r < 1) ctx.fillText((-maxV * r).toFixed(2), PL - 4, y2 + 4);
+    });
+    ctx.fillStyle = T.muted; ctx.textAlign = 'right';
+    ctx.fillText(maxV.toFixed(2), PL - 4, PT + 5);
+    ctx.fillText((-maxV).toFixed(2), PL - 4, PT + gh + 4);
+  }
+
+  // Step fill
+  ctx.beginPath(); ctx.moveTo(PL, mid);
+  for (let i = 0; i < xs.length; i++) {
+    const px = PL + gw * (xs[i] / L), py = mid - Vs[i] * scale;
+    if (i === 0) { ctx.lineTo(px, py); }
+    else { const ppx = PL + gw * (xs[i - 1] / L); ctx.lineTo(ppx, py); ctx.lineTo(px, py); }
+  }
+  ctx.lineTo(PL + gw, mid); ctx.closePath();
+  ctx.fillStyle = T.sfd + '2a'; ctx.fill();
+
+  ctx.beginPath();
+  for (let i = 0; i < xs.length; i++) {
+    const px = PL + gw * (xs[i] / L), py = mid - Vs[i] * scale;
+    if (i === 0) ctx.moveTo(px, py);
+    else { const ppx = PL + gw * (xs[i - 1] / L); ctx.lineTo(ppx, py); ctx.lineTo(px, py); }
+  }
+  ctx.strokeStyle = T.sfd; ctx.lineWidth = 2; ctx.stroke();
+
+  drawXLabels(ctx, PL, PT, gw, gh, L, T);
+  drawYLabel(ctx, 'Shear force (kN)', h, T);
+}
+
+function drawAxes(ctx, PL, PT, gw, gh, T) {
+  ctx.strokeStyle = T.muted; ctx.lineWidth = 0.5;
+  ctx.beginPath(); ctx.moveTo(PL, PT); ctx.lineTo(PL, PT + gh); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(PL, PT + gh / 2); ctx.lineTo(PL + gw, PT + gh / 2); ctx.stroke();
+}
+
+function drawXLabels(ctx, PL, PT, gw, gh, L, T) {
+  const steps = Math.min(10, Math.floor(L));
+  ctx.fillStyle = T.muted; ctx.textAlign = 'center'; ctx.font = '10px system-ui';
+  for (let i = 0; i <= steps; i++) {
+    ctx.fillText(`${(L * i / steps).toFixed(1)} m`, PL + gw * (i / steps), PT + gh + 14);
+  }
+}
+
+function drawYLabel(ctx, text, h, T) {
+  ctx.save();
+  ctx.translate(12, h / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillStyle = T.muted; ctx.textAlign = 'center'; ctx.font = '11px system-ui';
+  ctx.fillText(text, 0, 0);
+  ctx.restore();
+}
+
+// Init
+drawBeam(10);
+</script>
+</body>
+</html>
