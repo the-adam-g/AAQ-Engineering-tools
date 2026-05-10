@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shared Resistor Circuit Quiz</title>
+<style>
+  body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
+  canvas { border: 1px solid #000; background: #f8f8f8; }
+  .form-group { margin: 10px 0; }
+  input { padding: 5px; width: 80px; }
+  button { padding: 5px 10px; }
+  span { border-bottom: 1px solid; }
+</style>
+</head>
+<body>
+
+<h1>Kirchhoff's Law Practice: Shared Resistor Circuit</h1>
+
+<canvas id="circuitCanvas" width="600" height="350"></canvas>
+<h1>Values</h1>
+<h1 id="values"></h1>
+<div class="form-group">
+  <label for="I1">Enter current in resistor 1 (A): </label>
+  <input type="number1" id="I1" step="0.01">
+  <label for="I2">Enter current in resistor 2(A): </label>
+  <input type="number2" id="I2" step="0.01">
+  <label for="currentInput">Enter current in shared resistor (A): </label>
+  <input type="number" id="currentInput" step="0.01">
+</div>
+<button onclick="checkAnswer()">Submit</button>
+
+<p id="feedback"></p>
+
+<script>
+
+function getRandom(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// Circuit values
+let R1 = getRandom(5, 20);
+let R2 = getRandom(5, 20);
+let Rshared = getRandom(5, 20);
+
+let V1 = getRandom(10, 20);
+
+function drawCircuit() {
+
+  const canvas = document.getElementById("circuitCanvas");
+  const ctx = canvas.getContext("2d");
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.strokeStyle = "#cc0000";
+  ctx.fillStyle = "blue";
+  ctx.lineWidth = 3;
+  ctx.font = "18px Arial";
+
+  // ===== Helpers =====
+
+  function wire(x1, y1, x2, y2) {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
+
+  // EU resistor
+function resistor(x, y, w, h, horizontal, label) {
+
+  ctx.beginPath();
+
+  if (horizontal) {
+
+    ctx.rect(x, y - h/2, w, h);
+    ctx.stroke();
+
+    ctx.fillText(label, x + 5, y - 15);
+
+  } else {
+
+    ctx.rect(x - w/2, y, w, h);
+    ctx.stroke();
+
+    ctx.fillText(label, x + 15, y + h/2);
+  }
+}
+
+  function node(x, y) {
+    ctx.beginPath();
+    ctx.fillStyle = "#cc0000";
+    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "blue";
+  }
+
+  function battery(x, topY, bottomY, label) {
+
+    // upper wire
+    wire(x, topY, x, topY + 60);
+
+    // short plate
+    wire(x - 25, topY + 60, x + 25, topY + 60);
+
+    // long plate
+    wire(x - 15, topY + 90, x + 15, topY + 90);
+
+    // lower wire
+    wire(x, topY + 90, x, bottomY);
+
+    ctx.fillText(label, x - 55, topY + 80);
+  }
+
+  function currentArrow(cx, cy, label) {
+
+    ctx.strokeStyle = "blue";
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, 40, 0.4, 5.4);
+    ctx.stroke();
+
+    // arrow head
+    ctx.beginPath();
+    ctx.moveTo(cx + 30, cy - 18);
+    ctx.lineTo(cx + 18, cy - 20);
+    ctx.lineTo(cx + 24, cy - 8);
+    ctx.closePath();
+
+    ctx.fill();
+
+    ctx.fillText(label, cx - 10, cy + 10);
+
+    ctx.strokeStyle = "#cc0000";
+    ctx.lineWidth = 3;
+  }
+
+  // ===== Coordinates =====
+
+  const leftX = 100;
+  const centerX = 300;
+  const rightX = 500;
+
+  const topY = 80;
+  const bottomY = 280;
+
+  // ===== Bottom rail =====
+
+  wire(leftX, bottomY, rightX, bottomY);
+
+  // ===== Left loop =====
+
+  battery(leftX, topY, bottomY, `V1=${V1}V`);
+
+  wire(leftX, topY, 140, topY);
+
+  resistor(140, topY, 60, 20, true, `R1=${R1}Ω`);
+
+  wire(200, topY, centerX, topY);
+
+  // ===== Right loop =====
+
+  battery(rightX, topY, bottomY, `V2=${V1}V`);
+
+  wire(centerX, topY, 340, topY);
+
+  resistor(340, topY, 60, 20, true, `R2=${R2}Ω`);
+
+  wire(400, topY, rightX, topY);
+
+  // ===== Shared resistor =====
+
+  wire(centerX, topY, centerX, 130);
+  wire(centerX, 230, centerX, 260);
+
+  resistor(centerX, 130, 20, 100, false, `R3=${Rshared}Ω`);
+
+  // connect shared resistor to bottom rail
+  wire(centerX, 260, centerX, bottomY);
+
+  // ===== Nodes =====
+
+  node(centerX, topY);
+
+  node(centerX, bottomY);
+
+  // ===== Current arrows =====
+
+}
+drawCircuit()
+</script>
+</body>
+</html>
