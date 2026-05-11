@@ -45,7 +45,8 @@ let Rshared = getRandom(5, 20);
 
 let V1 = getRandom(10, 20);
 
-function drawCircuit() {
+function checkAnswer() { const userI1 = parseFloat(document.getElementById("I1").value); const userI2 = parseFloat(document.getElementById("I2").value); const userI3 = parseFloat(document.getElementById("currentInput").value); const answers = calculateCurrents(); const feedback = document.getElementById("feedback"); const correctI1 = Math.abs(userI1 - answers.I1) < 0.01; const correctI2 = Math.abs(userI2 - answers.I2) < 0.01; const correctI3 = Math.abs(userI3 - answers.I3) < 0.01; if (correctI1 && correctI2 && correctI3) { feedback.innerHTML = Correct! 🎉<br> I1 = ${answers.I1.toFixed(2)} A<br> I2 = ${answers.I2.toFixed(2)} A<br> I3 = ${answers.I3.toFixed(2)} A ; feedback.style.color = "green"; } else { feedback.innerHTML = Incorrect. Try again!<br><br> Correct values:<br> I1 ≈ ${answers.I1.toFixed(2)} A<br> I2 ≈ ${answers.I2.toFixed(2)} A<br> I3 ≈ ${answers.I3.toFixed(2)} A ; feedback.style.color = "red"; } }
+  function drawCircuit() {
 
   const canvas = document.getElementById("circuitCanvas");
   const ctx = canvas.getContext("2d");
@@ -190,6 +191,7 @@ function resistor(x, y, w, h, horizontal, label) {
 
 }
 drawCircuit()
+  
 </script>
 </body>
 </html>
