@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Materials Study Set</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e9ecee;--panel:#f7f8f8;--ink:#1a2126;--mute:#5d6b73;--line:#b9c2c7;--accent:#1d7a6d;--accent-ink:#fff;--good:#1d7a6d;--bad:#b23b2c;--warn:#b57a12;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#161b1e;--panel:#20272b;--ink:#e8ecee;--mute:#93a2aa;--line:#3a464c;--accent:#4fc0ad;--accent-ink:#0d1a17;--good:#4fc0ad;--bad:#e8806f;--warn:#e0aa4a;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 Barlow,system-ui,sans-serif}
+.wrap{max-width:720px;margin:0 auto;padding:20px 16px 60px}
+h1{font:700 30px/1.1 "Barlow Condensed",Barlow,sans-serif;margin:8px 0 14px;letter-spacing:.01em}
+nav{display:flex;gap:6px;border-bottom:2px solid var(--line);margin-bottom:22px}
+nav button{background:none;border:0;padding:10px 14px;font:600 17px Barlow,sans-serif;color:var(--mute);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}
+nav button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--accent)}
+button{font-family:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn{background:var(--panel);color:var(--ink);border:2px solid var(--line);border-radius:6px;padding:9px 16px;font:600 16px Barlow,sans-serif;cursor:pointer}
+.btn.main{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn:hover{border-color:var(--ink)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center;margin-top:16px}
+.hidden{display:none}
+/* flashcard */
+.scene{perspective:1200px;height:320px;cursor:pointer}
+.card{position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
+.scene.flipped .card{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;background:var(--panel);border:2px solid var(--ink);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 40px;text-align:center;
+ background-image:radial-gradient(circle,var(--line) 3px,transparent 4px),radial-gradient(circle,var(--line) 3px,transparent 4px),radial-gradient(circle,var(--line) 3px,transparent 4px),radial-gradient(circle,var(--line) 3px,transparent 4px);
+ background-size:14px 14px;background-repeat:no-repeat;background-position:6px 6px,calc(100% - 6px) 6px,6px calc(100% - 6px),calc(100% - 6px) calc(100% - 6px)}
+.face.back{transform:rotateY(180deg);border-color:var(--accent)}
+.face .tag{font:600 14px Barlow,sans-serif;color:var(--mute);margin-bottom:10px}
+.face .big{font:700 34px/1.15 "Barlow Condensed",Barlow,sans-serif}
+.face .def{font-size:23px;line-height:1.35}
+.count{text-align:center;color:var(--mute);margin-top:14px;font-weight:500}
+@media (prefers-reduced-motion:reduce){.card{transition:none}}
+/* learn */
+.bar{height:10px;background:var(--line);border-radius:5px;overflow:hidden;margin-bottom:6px}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+.meta{display:flex;justify-content:space-between;color:var(--mute);font-weight:500;margin-bottom:20px;font-size:15px}
+.q{background:var(--panel);border:2px solid var(--ink);border-radius:10px;padding:22px 24px;margin-bottom:16px}
+.q .tag{color:var(--mute);font-size:14px;font-weight:600}
+.q .big{font:700 30px/1.15 "Barlow Condensed",Barlow,sans-serif;margin-top:2px}
+.opts{display:grid;gap:10px}
+.opt{text-align:left;background:var(--panel);border:2px solid var(--line);border-radius:8px;padding:13px 16px;font-size:17px;cursor:pointer;color:var(--ink)}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt.right{border-color:var(--good);background:color-mix(in srgb,var(--good) 14%,var(--panel))}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--panel))}
+textarea,input[type=text]{width:100%;font:17px/1.45 Barlow,sans-serif;padding:12px 14px;border:2px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink)}
+textarea{resize:vertical}
+.fb{margin-top:16px;padding:14px 16px;border-radius:8px;border:2px solid var(--line);background:var(--panel)}
+.fb.ok{border-color:var(--good)}.fb.no{border-color:var(--bad)}.fb.close{border-color:var(--warn)}
+.fb b.t{display:block;margin-bottom:4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.chip{padding:2px 10px;border-radius:99px;font-size:15px;font-weight:600;border:2px solid}
+.chip.hit{border-color:var(--good);color:var(--good)}.chip.miss{border-color:var(--bad);color:var(--bad)}
+.done{text-align:center;padding:30px 0}
+.done .big{font:700 40px "Barlow Condensed",Barlow,sans-serif}
+.hint{color:var(--mute);font-size:15px;margin:6px 0 0}
+label{font-weight:600;display:block;margin:14px 0 6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="title">Materials Study Set</h1>
+  <a href="index.html">Take me back!</a>
+  <nav role="tablist">
+    <button role="tab" data-v="cards" aria-selected="true">Flashcards</button>
+    <button role="tab" data-v="learn" aria-selected="false">Learn</button>
+    <button role="tab" data-v="edit" aria-selected="false">Edit set</button>
+  </nav>
+
+  <section id="cards">
+    <div class="scene" id="scene" tabindex="0" role="button" aria-label="Flip card"><div class="card">
+      <div class="face"><div class="tag">Term</div><div class="big" id="front"></div></div>
+      <div class="face back"><div class="tag">Definition</div><div class="def" id="back"></div></div>
+    </div></div>
+    <div class="count" id="count"></div>
+    <div class="row">
+      <button class="btn" id="prev">Previous</button>
+      <button class="btn main" id="flip">Flip</button>
+      <button class="btn" id="next">Next</button>
+    </div>
+    <div class="row">
+      <button class="btn" id="shuf">Shuffle</button>
+      <button class="btn" id="dir">Show definition first</button>
+    </div>
+    <p class="hint" style="text-align:center">Space flips the card. Arrow keys move between cards.</p>
+  </section>
+
+  <section id="learn" class="hidden"></section>
+
+  <section id="edit" class="hidden">
+    <label for="setname">Set name</label>
+    <input type="text" id="setname">
+    <label for="setdata">Terms and definitions</label>
+    <textarea id="setdata" rows="14" spellcheck="false"></textarea>
+    <p class="hint">One card per line: <b>Term - Definition</b>. The first " - " splits the line.</p>
+    <div class="row" style="justify-content:flex-start">
+      <button class="btn main" id="save">Save set</button>
+      <button class="btn" id="reset">Restore original set</button>
+    </div>
+    <p class="hint" id="saved"></p>
+  </section>
+</div>
+
+<script>
+const SEED_NAME="Metals and materials";
+const SEED=`Pure Metal vs Alloy - Pure consists of one element; alloys mix metals to enhance specific mechanical properties.
+Ferrous vs Non-Ferrous - Ferrous metals contain iron; non-ferrous metals contain no iron.
+Metallic Bonding Mechanism - Positive metal ions surrounded by a delocalized sea of shared electrons.
+Crystal Lattice and Ductility - Regular lattice planes slide past each other easily, giving metals high ductility.
+Cast Iron Properties - High carbon content makes it hard, brittle, and strong under compression.
+Cast Iron Application - Engine blocks and machine bases due to compressive strength and vibration damping.
+Low Carbon Steel Properties - Ductile, tough, easily welded, but has relatively low tensile strength.
+Low Carbon Steel Application - Car bodies, panels, and structural steel beams.
+Medium Carbon Steel Properties - Stronger and harder than low carbon steel, but with reduced ductility.
+Medium Carbon Steel Application - Gears, axles, and railway tracks.
+High Carbon Steel Properties - Very hard and wear-resistant, but brittle and difficult to weld.
+High Carbon Steel Application - Cutting tools, springs, files, and masonry drills.
+Stainless Steel Properties - Contains chromium which forms a passive layer for high corrosion resistance.
+Stainless Steel Application - Cutlery, surgical instruments, and kitchen sinks.
+Aluminium Properties - Lightweight, excellent corrosion resistance, and high strength-to-weight ratio.
+Aluminium Application - Aircraft frames, window frames, and beverage cans.
+Titanium Properties - Exceptional strength-to-weight ratio and outstanding corrosion resistance.
+Titanium Application - Aerospace components and medical bone implants.
+Copper Properties - Outstanding electrical and thermal conductivity, highly malleable and ductile.
+Copper Application - Electrical wiring and domestic plumbing pipes.
+Nickel Properties - High corrosion resistance and maintains strength at elevated temperatures.
+Nickel Application - Jet engine turbine blades and electroplating.
+Zinc Properties - Low melting point, reactive, and offers sacrificial corrosion protection.
+Zinc Application - Galvanising steel and die casting complex shapes.
+Brass Properties - Copper-zinc alloy; corrosion-resistant, low friction, and attractive acoustic properties.
+Brass Application - Musical instruments, taps, and plumbing fittings.
+Lithium Properties - Lightest alkali metal, highly reactive, with excellent electrochemical potential.
+Lithium Application - Rechargeable batteries and lightweight alloy additives.`;
+
+const $=s=>document.querySelector(s);
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+const parse=t=>t.split("\n").map(l=>l.trim()).filter(Boolean).map(l=>{const i=l.indexOf(" - ");return i<1?null:{t:l.slice(0,i).trim(),d:l.slice(i+3).trim()}}).filter(Boolean);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+function el(tag,props,...kids){const e=document.createElement(tag);for(const k in props||{}){if(k==="class")e.className=props[k];else if(k.startsWith("on"))e.addEventListener(k.slice(2),props[k]);else e.setAttribute(k,props[k])}kids.flat().forEach(c=>e.append(c));return e}
+
+let raw=store.get("set.data")||SEED, name=store.get("set.name")||SEED_NAME, cards=parse(raw);
+$("#title").textContent=name;
+
+/* tabs */
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>show(b.dataset.v));
+function show(v){
+  document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-selected",b.dataset.v===v));
+  ["cards","learn","edit"].forEach(id=>$("#"+id).classList.toggle("hidden",id!==v));
+  if(v==="learn")startLearn();
+}
+
+/* flashcards */
+let order=cards.map((_,i)=>i),pos=0,defFirst=false;
+function drawCard(){
+  const c=cards[order[pos]];if(!c)return;
+  $("#scene").classList.remove("flipped");
+  $("#front").textContent=defFirst?c.d:c.t;$("#back").textContent=defFirst?c.t:c.d;
+  document.querySelectorAll("#scene .tag")[0].textContent=defFirst?"Definition":"Term";
+  document.querySelectorAll("#scene .tag")[1].textContent=defFirst?"Term":"Definition";
+  $("#front").className=defFirst?"def":"big";$("#back").className=defFirst?"big":"def";
+  $("#count").textContent=(pos+1)+" of "+cards.length;
+}
+const flip=()=>$("#scene").classList.toggle("flipped");
+$("#scene").onclick=flip;$("#flip").onclick=flip;
+$("#next").onclick=()=>{pos=(pos+1)%cards.length;drawCard()};
+$("#prev").onclick=()=>{pos=(pos-1+cards.length)%cards.length;drawCard()};
+$("#shuf").onclick=()=>{order=shuffle(order);pos=0;drawCard()};
+$("#dir").onclick=()=>{defFirst=!defFirst;$("#dir").textContent=defFirst?"Show term first":"Show definition first";drawCard()};
+document.addEventListener("keydown",e=>{
+  if(e.target.matches("textarea,input"))return;
+  if($("#cards").classList.contains("hidden"))return;
+  if(e.key===" "){e.preventDefault();flip()}
+  else if(e.key==="ArrowRight")$("#next").click();
+  else if(e.key==="ArrowLeft")$("#prev").click();
+});
+
+/* keyword matching */
+const STOP=new Set("a an the and or of to in on for with by as at is are be it its that this which from due has have can also but not no than then so very".split(" "));
+const norm=w=>w.replace("aluminum","aluminium").replace("sulfur","sulphur").replace("delocalised","delocalized").replace("galvanizing","galvanising");
+const stem=w=>w.length>4?w.replace(/(ing|ed|es|s)$/,""):w;
+const words=t=>norm(t.toLowerCase()).split(/[^a-z0-9]+/).filter(Boolean);
+function lev(a,b){const m=[...Array(b.length+1).keys()];for(let i=1;i<=a.length;i++){let p=m[0];m[0]=i;for(let j=1;j<=b.length;j++){const t=m[j];m[j]=Math.min(m[j]+1,m[j-1]+1,p+(a[i-1]===b[j-1]?0:1));p=t}}return m[b.length]}
+function keywords(def){return [...new Set(words(def).filter(w=>!STOP.has(w)))]}
+function grade(answer,def){
+  const given=words(answer).map(stem),keys=keywords(def),hit=[],miss=[];
+  keys.forEach(k=>{const s=stem(k);(given.some(g=>g===s||(s.length>=5&&lev(g,s)<=1))?hit:miss).push(k)});
+  return {hit,miss,score:keys.length?hit.length/keys.length:0};
+}
+
+/* learn */
+let L;
+function startLearn(){
+  if(cards.length<4){$("#learn").replaceChildren(el("p",{},"Add at least 4 cards in Edit set to use Learn."));return}
+  L={m:cards.map(()=>0),queue:[],right:0,tries:0};
+  nextRound();
+}
+function nextRound(){
+  L.queue=shuffle(cards.map((_,i)=>i).filter(i=>L.m[i]<2));
+  if(!L.queue.length)return finish();
+  ask();
+}
+function ask(){
+  if(!L.queue.length)return nextRound();
+  const i=L.queue[0],c=cards[i],root=$("#learn");
+  const pct=L.m.reduce((a,b)=>a+b,0)/(2*cards.length)*100;
+  const head=[el("div",{class:"bar"},el("i",{style:"width:"+pct+"%"})),
+    el("div",{class:"meta"},el("span",{},L.m.filter(x=>x>=2).length+" of "+cards.length+" mastered"),el("span",{},L.m[i]===0?"Multiple choice":"Written answer"))];
+  const q=el("div",{class:"q"},el("div",{class:"tag"},"Term"),el("div",{class:"big"},c.t));
+  root.replaceChildren(...head,q);
+  L.m[i]===0?mc(i,root):written(i,root);
+}
+function mc(i,root){
+  const c=cards[i],last=c.t.split(" ").pop();
+  const others=cards.map((_,j)=>j).filter(j=>j!==i&&cards[j].d!==c.d);
+  const same=shuffle(others.filter(j=>cards[j].t.split(" ").pop()===last)),rest=shuffle(others.filter(j=>!same.includes(j)));
+  const picks=shuffle([i,...same.concat(rest).slice(0,3)]);
+  const box=el("div",{class:"opts"});
+  picks.forEach(j=>{
+    const b=el("button",{class:"opt"},cards[j].d);
+    b.onclick=()=>{
+      box.querySelectorAll("button").forEach((x,k)=>{x.disabled=true;if(picks[k]===i)x.classList.add("right")});
+      const ok=j===i;if(!ok)b.classList.add("wrong");
+      result(i,ok,root,ok?"Correct":"Not quite — the right answer is highlighted.");
+    };
+    box.append(b);
+  });
+  root.append(el("p",{class:"tag",style:"color:var(--mute);font-weight:600;margin:0 0 8px"},"Choose the matching definition"),box);
+}
+function written(i,root){
+  const c=cards[i];
+  const ta=el("textarea",{rows:"3",placeholder:"Type the definition from memory",autocomplete:"off"});
+  const go=el("button",{class:"btn main"},"Check answer");
+  const idk=el("button",{class:"btn"},"I don't know");
+  root.append(ta,el("div",{class:"row",style:"justify-content:flex-start"},go,idk));
+  ta.focus();
+  const check=giveUp=>{
+    const g=giveUp?{hit:[],miss:keywords(c.d),score:0}:grade(ta.value,c.d);
+    ta.disabled=go.disabled=idk.disabled=true;
+    const pass=g.score>=0.6,close=!pass&&g.score>=0.35;
+    const fb=el("div",{class:"fb "+(pass?"ok":close?"close":"no")},
+      el("b",{class:"t"},pass?"Correct":close?"Close — you have some of the key ideas":"Not yet"),
+      g.hit.length+g.miss.length?el("div",{class:"chips"},g.hit.map(k=>el("span",{class:"chip hit"},k)),g.miss.map(k=>el("span",{class:"chip miss"},k))):"",
+      el("div",{},el("b",{},"Definition: "),c.d));
+    root.append(fb);
+    if(pass)return result(i,true,root,null,true);
+    const row=el("div",{class:"row",style:"justify-content:flex-start"});
+    const over=el("button",{class:"btn"},"Count as correct");
+    over.onclick=()=>{L.m[i]=Math.min(2,L.m[i]+1);L.queue.shift();L.right++;L.tries++;ask()};
+    const nx=el("button",{class:"btn main"},"Keep going");
+    nx.onclick=()=>{L.m[i]=0;L.queue.push(L.queue.shift());L.tries++;ask()};
+    row.append(nx);if(!giveUp)row.append(over);
+    root.append(row);nx.focus();
+  };
+  go.onclick=()=>check(false);idk.onclick=()=>check(true);
+  ta.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();if(!ta.disabled)check(false)}});
+}
+function result(i,ok,root,msg,noMsg){
+  L.tries++;if(ok)L.right++;
+  if(ok){L.m[i]++;L.queue.shift()}else{L.m[i]=0;L.queue.push(L.queue.shift())}
+  if(!noMsg)root.append(el("div",{class:"fb "+(ok?"ok":"no")},el("b",{class:"t"},msg)));
+  const nx=el("button",{class:"btn main"},"Continue");nx.onclick=ask;
+  root.append(el("div",{class:"row",style:"justify-content:flex-start"},nx));nx.focus();
+}
+function finish(){
+  const b=el("button",{class:"btn main"},"Study again");b.onclick=startLearn;
+  $("#learn").replaceChildren(el("div",{class:"done"},el("div",{class:"big"},"Set mastered"),
+    el("p",{},L.right+" correct out of "+L.tries+" answers"),b));
+}
+
+/* edit */
+$("#setname").value=name;$("#setdata").value=raw;
+$("#save").onclick=()=>{
+  const d=$("#setdata").value,p=parse(d);
+  if(p.length<4){$("#saved").textContent="Need at least 4 lines in the form Term - Definition.";return}
+  raw=d;name=$("#setname").value.trim()||"Study set";cards=p;
+  store.set("set.data",raw);store.set("set.name",name);
+  $("#title").textContent=name;order=cards.map((_,i)=>i);pos=0;drawCard();
+  $("#saved").textContent="Saved "+p.length+" cards in this browser.";
+};
+$("#reset").onclick=()=>{
+  store.del("set.data");store.del("set.name");raw=SEED;name=SEED_NAME;cards=parse(raw);
+  $("#setdata").value=raw;$("#setname").value=name;$("#title").textContent=name;
+  order=cards.map((_,i)=>i);pos=0;drawCard();$("#saved").textContent="Original set restored.";
+};
+drawCard();
+</script>
+</body>
+</html>
